@@ -1,14 +1,15 @@
 const express = require('express');
+const fs = require('fs'); //pour lire le fichier json
+const path = require('path'); //pour indiquer le chemin
 const mongoose = require('mongoose');
 
-const Book = require('./models/Book');
+const booksRoutes = require('./routes/books');
 
-
-/*mongoose.connect('',
+mongoose.connect('mongodb+srv://anthonyfontaine454:A3cqI7jhQ7C2mTCW@monvieuxgrimoire.ilcncbr.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch((error) => console.error('Connexion à MongoDB échouée :', error)); */
+  .catch((error) => console.error('Connexion à MongoDB échouée :', error));
 
   const app = express();
 
@@ -24,24 +25,34 @@ app.use((req, res, next) => {
     next();
   });
 
-  app.use((req, res, next) => {
-    console.log('requête recue')
-    next(); //pour passer aux prochain middleware sinon ça freeze.
-})
+  app.use('/api/books', booksRoutes)
+  app.use('/api/books/:id', booksRoutes)
+  app.use('/api/books/bestrating', booksRoutes)
 
-app.use((req, res, next) => {
-    res.status(201);
-    next();
-})
 
-app.use((req, res, next) => {
-    res.json({message: 'Votre requête à bien était reçu'}); //Permet d'envoyez la réponse
-    next();
-});
-
-app.use((req, res) => {
-    console.log('Réponse envoyez avec succès');
-})
-   
 
 module.exports = app;
+
+/* 
+Les donénes on était intégré grâce à ce script
+
+.then(() => {
+      console.log('Connexion à MongoDB réussie !');
+  
+      // Lecture du fichier JSON contenant les données des livres
+      const data = require('../frontend/public/data/data.json');
+  
+      // Insertion des livres dans la base de données
+      Book.insertMany(data)
+          .then(() => {
+              console.log('Données insérées avec succès dans la base de données.');
+              mongoose.connection.close(); // Fermeture de la connexion à la base de données une fois l'insertion terminée
+          })
+          .catch((error) => {
+              console.error('Erreur lors de l\'insertion des données :', error);
+              mongoose.connection.close(); // Fermeture de la connexion à la base de données en cas d'erreur
+          });
+  })
+  .catch((error) => {
+      console.error('Connexion à MongoDB échouée :', error);
+  });*/
