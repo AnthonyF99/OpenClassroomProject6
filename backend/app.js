@@ -1,9 +1,8 @@
 const express = require('express');
-const fs = require('fs'); //pour lire le fichier json
-const path = require('path'); //pour indiquer le chemin
 const mongoose = require('mongoose');
-
+const path = require('path');
 const booksRoutes = require('./routes/books');
+const userRoutes = require('./routes/user');
 
 mongoose.connect('mongodb+srv://anthonyfontaine454:A3cqI7jhQ7C2mTCW@monvieuxgrimoire.ilcncbr.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
   { useNewUrlParser: true,
@@ -17,6 +16,7 @@ mongoose.connect('mongodb+srv://anthonyfontaine454:A3cqI7jhQ7C2mTCW@monvieuxgrim
 app.use(express.json()); // ce middleware intercepte toute les requetes qui contiennent du json et nous met à disposition le corps de la requête dans req.body (body parser fait la même chose)
 //app.use on intercepte tout les requêtes.
 
+
 app.use((req, res, next) => {
     // Tout cela va permettre a l'application d'accèder à l'api sans aucun problème.
     res.setHeader('Access-Control-Allow-Origin', '*'); // L'origine qui a le droit d'accèder à notre api = tout le monde
@@ -25,10 +25,9 @@ app.use((req, res, next) => {
     next();
   });
 
+  app.use('/images', express.static(path.join(__dirname, 'images')));
   app.use('/api/books', booksRoutes)
-  app.use('/api/books/:id', booksRoutes)
-  app.use('/api/books/bestrating', booksRoutes)
-
+  app.use('/api/auth', userRoutes);
 
 
 module.exports = app;
