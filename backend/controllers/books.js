@@ -107,10 +107,17 @@ exports.rateBook = (req, res, next) => {
       book.averageRating = totalScore / totalRatings;
 
       book.save()
-        .then(() => res.status(200).json({ message: 'Note ajoutée avec succès'}))
-        .catch(error => res.status(500).json({ error }));
-    })
-    .catch(error => res.status(500).json({ error }));
+      .then((savedBook) => res.status(200).json({
+        //Permet d'afficher les bon éléments du livre une fois la sauvegarde faite au lieu de "undefined"
+        message: 'Note ajoutée avec succès',
+        bookId: savedBook._id,
+        newRating: { userId, grade },
+        averageRating: savedBook.averageRating,
+        ...savedBook.toObject()
+      }))
+      .catch(error => res.status(500).json({ error }));
+  })
+  .catch(error => res.status(500).json({ error }));
 };
 
 exports.getOneBook = (req, res, next) => {
