@@ -12,7 +12,9 @@ exports.getAllBook = (req, res, next) => {
 
 exports.getBestRatingBook = (req, res, next) => {
     // Logique pour obtenir les livres avec la meilleure note
-    Book.find({ averageRating: { $gte: 4 } }) // Par exemple, sélectionnez les livres avec une note moyenne de 4.5 ou plus
+    Book.find()
+    .sort({ averageRating: -1 }) // Trier par note moyenne décroissante
+    .limit(3) // Limiter le résultat aux 3 meilleurs livres
     .then(books => res.status(200).json(books))
     .catch(error => res.status(404).json(error));
   }
