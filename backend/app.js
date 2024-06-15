@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const path = require('path');
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
+require('dotenv').config();
+
 
 mongoose.connect('mongodb+srv://anthonyfontaine454:A3cqI7jhQ7C2mTCW@monvieuxgrimoire.ilcncbr.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
   { useNewUrlParser: true,
