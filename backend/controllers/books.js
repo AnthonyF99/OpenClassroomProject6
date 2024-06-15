@@ -52,11 +52,9 @@ exports.createBook = (req, res, next) => {
   // Sauvegardez le livre dans la base de données
   book.save()
     .then(() => {
-      console.log('Livre créé avec succès');
       res.status(201).json({ message: 'Livre créé avec succès' });
     })
     .catch(error => {
-      console.error('Erreur lors de la sauvegarde du livre:', error);
       res.status(400).json({ error: 'Erreur lors de la sauvegarde du livre' });
     });
 };
@@ -65,18 +63,54 @@ exports.deleteBook = (req, res, next) => {
   Book.findOne({_id: req.params.id})
     .then(book => {
       if (book.userId !== req.auth.userId) {
-        res.status(403).json({message: 'Not authorized'});
+        res.status(403).json({message: 'Forbidden'});
       } else {
           const filename= book.imageUrl.split('/images')[1];
           fs.unlink(`images/${filename}`, () => {
             Book.deleteOne({_id: req.params.id})
                 .then(() => { res.status(200).json({message: 'Livre supprimé !'})})
-                .catch(error => res.status(401).json({ error }));
+                .catch(error => res.status(403).json({ error }));
           });
       }
     })
     .catch(error => { res.status(500).json({error});
   });
+};
+
+exports.rateBook = (req, res, next) => {
+  const userId = req.auth.userId;
+  const grade = req.body.rating;
+
+  // Valider la note
+  if (grade < 1 || grade > 5) {
+    return res.status(400).json({ message: 'La note doit être comprise entre 1 et 5' });
+  }
+
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      if (!book) {
+        return res.status(404).json({ message: 'Livre non trouvé' });
+      }
+
+      // Vérifier si l'utilisateur a déjà noté le livre
+      const existingRating = book.ratings.find(r => r.userId === userId);
+      if (existingRating) {
+        return res.status(400).json({ message: 'Vous avez déjà noté ce livre' });
+      }
+
+      // Ajouter la nouvelle note
+      book.ratings.push({ userId, grade });
+
+      // Calculer la nouvelle moyenne des notes
+      const totalRatings = book.ratings.length;
+      const totalScore = book.ratings.reduce((sum, r) => sum + r.grade, 0);
+      book.averageRating = totalScore / totalRatings;
+
+      book.save()
+        .then(() => res.status(200).json({ message: 'Note ajoutée avec succès'}))
+        .catch(error => res.status(500).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
 };
 
 exports.getOneBook = (req, res, next) => {

@@ -44,7 +44,7 @@ const optimizeImage = async (req, res, next) => {
     }
 
     await sharp(filePath)
-      .resize({ width: 206 })  // Resize image to a width of 206px, maintaining aspect ratio
+      .resize({ width: 206, height: 260 })  // Resize image to a width of 206px, maintaining aspect ratio
       .jpeg(sharpConfig.jpeg)
       .toFile(tempOutputFilePath);
 
