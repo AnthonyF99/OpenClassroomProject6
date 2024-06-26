@@ -5,12 +5,12 @@ const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
 require('dotenv').config();
 
-
-mongoose.connect('mongodb+srv://anthonyfontaine454:A3cqI7jhQ7C2mTCW@monvieuxgrimoire.ilcncbr.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
-  .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch((error) => console.error('Connexion à MongoDB échouée :', error));
+mongoose.connect(process.env.MONGODB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connexion à MongoDB réussie !'))
+.catch((error) => console.error('Connexion à MongoDB échouée :', error));
 
   const app = express();
 
@@ -33,27 +33,3 @@ app.use((req, res, next) => {
 
 
 module.exports = app;
-
-/* 
-Les donénes on était intégré grâce à ce script
-
-.then(() => {
-      console.log('Connexion à MongoDB réussie !');
-  
-      // Lecture du fichier JSON contenant les données des livres
-      const data = require('../frontend/public/data/data.json');
-  
-      // Insertion des livres dans la base de données
-      Book.insertMany(data)
-          .then(() => {
-              console.log('Données insérées avec succès dans la base de données.');
-              mongoose.connection.close(); // Fermeture de la connexion à la base de données une fois l'insertion terminée
-          })
-          .catch((error) => {
-              console.error('Erreur lors de l\'insertion des données :', error);
-              mongoose.connection.close(); // Fermeture de la connexion à la base de données en cas d'erreur
-          });
-  })
-  .catch((error) => {
-      console.error('Connexion à MongoDB échouée :', error);
-  });*/

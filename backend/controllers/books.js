@@ -2,6 +2,7 @@
 //Cela va nous permettre de créez des nom sémantique, donc des noms qui expliqueront ce que les routes feront.
 
 const Book = require('../models/Book');
+const mongoose = require('mongoose');
 const fs = require('fs');
 
 exports.getAllBook = (req, res, next) => {
@@ -57,7 +58,7 @@ exports.createBook = (req, res, next) => {
       res.status(201).json({ message: 'Livre créé avec succès' });
     })
     .catch(error => {
-      res.status(400).json({ error: 'Erreur lors de la sauvegarde du livre' });
+      res.status(400).json(error);
     });
 };
 
@@ -79,47 +80,62 @@ exports.deleteBook = (req, res, next) => {
   });
 };
 
-exports.rateBook = (req, res, next) => {
+exports.rateBook = async (req, res, next) => {
   const userId = req.auth.userId;
-  const grade = req.body.rating;
+  const grade = parseFloat(req.body.rating);
 
   // Valider la note
   if (grade < 1 || grade > 5) {
     return res.status(400).json({ message: 'La note doit être comprise entre 1 et 5' });
   }
 
-  Book.findOne({ _id: req.params.id })
-    .then((book) => {
-      if (!book) {
-        return res.status(404).json({ message: 'Livre non trouvé' });
-      }
+  try {
+    // Trouver le livre par ID
+    const book = await Book.findById(req.params.id);
+    if (!book) {
+      return res.status(404).json({ message: 'Livre non trouvé' });
+    }
 
-      // Vérifier si l'utilisateur a déjà noté le livre
-      const existingRating = book.ratings.find(r => r.userId === userId);
-      if (existingRating) {
-        return res.status(400).json({ message: 'Vous avez déjà noté ce livre' });
-      }
+    // Vérifier si l'utilisateur a déjà noté le livre
+    const existingRating = book.ratings.find(r => r.userId === userId);
+    if (existingRating) {
+      return res.status(400).json({ message: 'Vous avez déjà noté ce livre' });
+    }
 
-      // Ajouter la nouvelle note
-      book.ratings.push({ userId, grade });
+    // Ajouter la nouvelle note
+    book.ratings.push({ userId, grade });
 
-      // Calculer la nouvelle moyenne des notes
-      const totalRatings = book.ratings.length;
-      const totalScore = book.ratings.reduce((sum, r) => sum + r.grade, 0);
-      book.averageRating = totalScore / totalRatings;
+    // Sauvegarder le livre avec la nouvelle note
+    await book.save();
 
-      book.save()
-      .then((savedBook) => res.status(200).json({
-        //Permet d'afficher les bon éléments du livre une fois la sauvegarde faite au lieu de "undefined"
-        message: 'Note ajoutée avec succès',
-        bookId: savedBook._id,
-        newRating: { userId, grade },
-        averageRating: savedBook.averageRating,
-        ...savedBook.toObject()
-      }))
-      .catch(error => res.status(500).json({ error }));
-  })
-  .catch(error => res.status(500).json({ error }));
+    // Calculer la nouvelle moyenne des notes avec agrégation
+    const [result] = await Book.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+      { $unwind: '$ratings' },
+      { $group: {
+        _id: '$_id',
+        averageRating: { $avg: '$ratings.grade' }
+      }}
+    ]);
+
+    // Arrondir la moyenne à une décimale
+    const roundedAverageRating = Math.round((result.averageRating + Number.EPSILON) * 10) / 10;
+
+    // Mettre à jour la moyenne des notes dans le document
+    book.averageRating = roundedAverageRating;
+    const updatedBook = await book.save();
+
+    res.status(200).json({
+      message: 'Note ajoutée avec succès',
+      bookId: updatedBook._id,
+      newRating: { userId, grade },
+      averageRating: roundedAverageRating,
+      ...updatedBook.toObject()
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
 };
 
 exports.getOneBook = (req, res, next) => {
