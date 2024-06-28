@@ -11,7 +11,6 @@ const BookCtrl = require('../controllers/books');
 
 
 
-// auth à rajouter pour les routes qui auront besoin
 router.get('/', BookCtrl.getAllBook);
 router.post('/', auth, upload, optimizeImage, BookCtrl.createBook);
 router.get('/bestrating', BookCtrl.getBestRatingBook);

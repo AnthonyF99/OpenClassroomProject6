@@ -5,6 +5,7 @@ const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
 require('dotenv').config();
 
+//Connexion à la base de données
 mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -15,14 +16,13 @@ mongoose.connect(process.env.MONGODB_URL, {
   const app = express();
 
 
-app.use(express.json()); // ce middleware intercepte toute les requetes qui contiennent du json et nous met à disposition le corps de la requête dans req.body (body parser fait la même chose)
-//app.use on intercepte tout les requêtes.
+app.use(express.json());
 
 
 app.use((req, res, next) => {
     // Tout cela va permettre a l'application d'accèder à l'api sans aucun problème.
-    res.setHeader('Access-Control-Allow-Origin', '*'); // L'origine qui a le droit d'accèder à notre api = tout le monde
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'); // On donne l'autorisation de réaliser certaines requête
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
   });
