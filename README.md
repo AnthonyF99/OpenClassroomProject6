@@ -18,4 +18,4 @@ Ce projet est une API backend pour une application de notation de livres. Elle p
 ## Comment exécuter le projet
 1. Clonez le dépôt :  
    ```bash
-   git clone https://github.com/username/book-rating-backend.git
+   git clone https://github.com/AnthonyF99/OpenClassroomProject6.git
